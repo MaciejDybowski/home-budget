@@ -1,0 +1,4 @@
+Data;Opis;Kontrahent;Kwota;Waluta;ID
+2026-01-02;Zakupy demonstracyjne;Sklep Przykładowy;-125,40;PLN;demo-purchase-001
+2026-01-03;Zwrot demonstracyjny;Sklep Przykładowy;10,00;PLN;demo-refund-001
+2026-01-04;Pensja demonstracyjna;Przykładowy Pracodawca;6500,00;PLN;demo-income-001

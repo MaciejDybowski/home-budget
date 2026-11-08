@@ -1,0 +1,13 @@
+{
+  "Miesięczne założenia dla całego domu · 2 osoby": "Miesięczne założenia dla Waszego domu",
+  "{0} reguł ze starej aplikacji": "{0} zapisanych reguł",
+  "Jeszcze nie wykonano importu w nowej wersji.": "Nie ma jeszcze importów. Zapisane pliki pojawią się tutaj.",
+  "Twoje reguły mają pierwszeństwo przed wbudowanym słownikiem marek. Najdłuższy pasujący fragment wygrywa.": "Twoje reguły mają pierwszeństwo przed podpowiedziami aplikacji. Jeśli pasuje kilka, użyjemy najbardziej szczegółowej.",
+  "Nie udało się wykonać operacji.": "Nie udało się zapisać zmiany. Sprawdź dane i spróbuj ponownie.",
+  "Nie udało się wykonać operacji w demo.": "Nie udało się zapisać zmiany w demo. Sprawdź dane i spróbuj ponownie.",
+  "Brak pasujących opcji. Zmień wyszukiwanie.": "Nie ma pasujących pozycji. Spróbuj wyszukać inaczej.",
+  "Ta operacja nie jest dostępna w demo.": "Ta funkcja jest dostępna we własnej instalacji HomeBudget.",
+  "Kwota musi być dodatnia i mieć najwyżej dwa miejsca po przecinku.": "Wpisz kwotę większą od zera, z najwyżej dwoma miejscami po przecinku.",
+  "Podaj dodatnią kwotę.": "Wpisz kwotę większą od zera.",
+  "import i wszystkie jego {0} operacji, także edytowane": "import wraz z jego operacjami ({0}), także tymi edytowanymi"
+}

@@ -1,0 +1,52 @@
+{
+  "name": "budget-app",
+  "private": true,
+  "type": "module",
+  "version": "2026.11.0",
+  "license": "MIT",
+  "author": "Maciej Dybowski (https://github.com/MaciejDybowski)",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run type-check && npm run build-only",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "build:demo": "VITE_DEMO_MODE=true vite build --outDir dist-demo",
+    "build:site": "vite build --config vite.site.config.mts",
+    "build:pages": "node scripts/build-pages.mjs",
+    "test:pages": "playwright test --config playwright.pages.config.ts",
+    "type-check": "vue-tsc --build --force",
+    "lint": "eslint .",
+    "check:i18n": "node scripts/check-locales.mjs",
+    "icons": "node scripts/icons.mjs",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.68.0",
+    "axios": "^1.13.2",
+    "chart.js": "^4.6.1",
+    "vue": "^3.5.21",
+    "vue-chartjs": "^5.3.4",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@playwright/test": "^1.64.1",
+    "@resvg/resvg-js": "^2.6.2",
+    "@tsconfig/node22": "^22.0.0",
+    "@types/node": "^22.9.0",
+    "@types/papaparse": "^5.5.2",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/compiler-dom": "^3.5.45",
+    "@vue/tsconfig": "^0.8.1",
+    "eslint": "^9.35.0",
+    "eslint-plugin-vue": "^10.12.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^7.1.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vue-tsc": "^3.2.0"
+  }
+}

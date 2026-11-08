@@ -1,0 +1,8 @@
+# Isolates the distribution test from an existing installation on a developer host.
+services:
+  postgres:
+    container_name: homebudget-distribution-postgres
+  budget-app-backend:
+    container_name: homebudget-distribution-backend
+  budget-app-frontend:
+    container_name: homebudget-distribution-frontend

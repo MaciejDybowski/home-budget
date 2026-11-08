@@ -1,0 +1,212 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Category {
+  id                 String            @id @default(uuid())
+  name               String
+  color              String?
+  expenses           Expense[]
+  patterns           CategoryPattern[]
+  excludedFromBudget Boolean           @default(false)
+  recurringCharges   RecurringCharge[]
+}
+
+model CategoryPattern {
+  id         String   @id @default(uuid())
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId String
+  pattern    String
+}
+
+model IncomeSource {
+  id      String   @id @default(uuid())
+  name    String
+  color   String?
+  incomes Income[]
+}
+
+model Expense {
+  id                 String         @id @default(uuid())
+  amount             Decimal        @db.Decimal(14, 2)
+  description        String?
+  date               DateTime
+  category           Category       @relation(fields: [categoryId], references: [id])
+  categoryId         String
+  createdAt          DateTime       @default(now())
+  kind               String         @default("EXPENSE")
+  origin             String         @default("LEGACY")
+  merchant           String?
+  merchantId         String?
+  merchantRecord     Merchant?      @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  excludedFromBudget Boolean        @default(false)
+  accountId          String?
+  account            BankAccount?   @relation(fields: [accountId], references: [id])
+  externalId         String?
+  bookingDate        DateTime?
+  raw                Json?
+  importId           String?
+  importBatch        ImportBatch?   @relation(fields: [importId], references: [id])
+  chargePayment      ChargePayment?
+
+  @@unique([accountId, externalId])
+  @@index([date])
+  @@index([importId])
+  @@index([merchantId])
+}
+
+model Income {
+  id          String       @id @default(uuid())
+  amount      Decimal      @db.Decimal(14, 2)
+  description String?
+  date        DateTime
+  source      IncomeSource @relation(fields: [sourceId], references: [id])
+  sourceId    String
+  createdAt   DateTime     @default(now())
+  accountId   String?
+  account     BankAccount? @relation(fields: [accountId], references: [id])
+  externalId  String?
+  raw         Json?
+  importId    String?
+  importBatch ImportBatch? @relation(fields: [importId], references: [id])
+
+  @@unique([accountId, externalId])
+  @@index([importId])
+}
+
+model BankAccount {
+  id        String              @id @default(uuid())
+  name      String
+  number    String?             @unique
+  expenses  Expense[]
+  imports   ImportBatch[]
+  incomes   Income[]
+  templates CsvImportTemplate[]
+}
+
+model ImportBatch {
+  id        String      @id @default(uuid())
+  filename  String
+  accountId String
+  account   BankAccount @relation(fields: [accountId], references: [id])
+  createdAt DateTime    @default(now())
+  expenses  Expense[]
+  incomes   Income[]
+}
+
+model CsvImportTemplate {
+  id        String      @id @default(uuid())
+  accountId String
+  account   BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  name      String
+  config    Json
+  updatedAt DateTime    @updatedAt
+
+  @@unique([accountId, name])
+}
+
+model MerchantRule {
+  id             String    @id @default(uuid())
+  pattern        String    @unique
+  merchant       String
+  merchantId     String?
+  merchantRecord Merchant? @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  categoryId     String?
+  kind           String    @default("EXPENSE")
+}
+
+model Merchant {
+  id             String          @id @default(uuid())
+  name           String
+  normalizedName String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  expenses       Expense[]
+  rules          MerchantRule[]
+  aliases        MerchantAlias[]
+}
+
+model MerchantAlias {
+  id         String   @id @default(uuid())
+  key        String
+  merchantId String
+  merchant   Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([key, merchantId])
+}
+
+model MonthlyBudget {
+  month          String  @id
+  amount         Decimal @db.Decimal(14, 2)
+  categoryLimits Json    @default("{}")
+}
+
+model RecurringCharge {
+  id             String          @id @default(uuid())
+  name           String
+  type           String          @default("SUBSCRIPTION")
+  amount         Decimal         @db.Decimal(14, 2)
+  intervalMonths Int             @default(1)
+  anchorDate     DateTime
+  status         String          @default("ACTIVE")
+  categoryId     String?
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  matchPattern   String?
+  website        String?
+  notes          String?
+  createdAt      DateTime        @default(now())
+  payments       ChargePayment[]
+}
+
+model ChargePayment {
+  id        String          @id @default(uuid())
+  chargeId  String
+  charge    RecurringCharge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  expenseId String          @unique
+  expense   Expense         @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  dueDate   DateTime
+
+  @@unique([chargeId, dueDate])
+}
+
+model SavingsGoal {
+  id            String             @id @default(uuid())
+  name          String
+  target        Decimal            @db.Decimal(14, 2)
+  initialAmount Decimal            @default(0) @db.Decimal(14, 2)
+  startDate     DateTime
+  deadline      DateTime
+  contributions GoalContribution[]
+}
+
+model GoalContribution {
+  id     String      @id @default(uuid())
+  goalId String
+  goal   SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  amount Decimal     @db.Decimal(14, 2)
+  date   DateTime
+}
+
+model MeterType {
+  id                   String         @id @default(uuid())
+  name                 String // np. "Prąd", "Woda zimna"
+  unit                 String // np. "kWh", "m³"
+  color                String?
+  expectedMonthlyUsage Float? // Założone miesięczne zużycie
+  readings             MeterReading[]
+}
+
+model MeterReading {
+  id          String    @id @default(uuid())
+  date        DateTime
+  value       Float // Wartość odczytu z licznika
+  meter       MeterType @relation(fields: [meterTypeId], references: [id])
+  meterTypeId String
+  createdAt   DateTime  @default(now())
+
+  @@index([meterTypeId, date])
+}

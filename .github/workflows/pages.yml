@@ -1,0 +1,55 @@
+name: Publish presentation and browser demo
+
+on:
+  push:
+    branches: [master, main]
+    paths: ["budget-app/**", "docs/screenshots/**", ".github/workflows/pages.yml", "LICENSE"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: budget-app/package-lock.json
+      - uses: actions/configure-pages@v5
+        id: pages
+      - run: npm ci
+        working-directory: budget-app
+      - run: npx playwright install --with-deps chromium webkit
+        working-directory: budget-app
+      - run: npm run test:pages
+        working-directory: budget-app
+        env:
+          PAGES_BASE: ${{ steps.pages.outputs.base_path }}/
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: budget-app/dist-pages
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment

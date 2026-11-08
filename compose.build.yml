@@ -1,0 +1,11 @@
+# Developers only. End users need docker-compose.yml, without this override.
+services:
+  migrate:
+    image: ${LOCAL_BACKEND_IMAGE:-home-budget-backend:local}
+    build: ./budget-app-backend
+  budget-app-backend:
+    image: ${LOCAL_BACKEND_IMAGE:-home-budget-backend:local}
+    build: ./budget-app-backend
+  budget-app-frontend:
+    image: ${LOCAL_FRONTEND_IMAGE:-home-budget-frontend:local}
+    build: ./budget-app

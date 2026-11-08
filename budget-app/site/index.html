@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <script>
+      (() => {
+        const url = new URL(window.location.href);
+        let language = url.searchParams.get("lang");
+        const current = document.documentElement.lang === "en" ? "en" : "pl";
+        if (language !== "en" && language !== "pl") {
+          language = current === "en" ? "en" : "";
+          try {
+            language =
+              localStorage.getItem("homebudget.language.v1") || language;
+          } catch {
+            /* Use the browser language. */
+          }
+          if (language !== "en" && language !== "pl")
+            language = navigator.language.toLowerCase().startsWith("pl")
+              ? "pl"
+              : "en";
+        }
+        let theme = "dark";
+        try {
+          theme = localStorage.getItem("theme") === "light" ? "light" : "dark";
+        } catch {
+          /* Dark is the default. */
+        }
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+        if (language === current) return;
+        const root =
+          current === "en" ? url.pathname.replace(/en\/$/, "") : url.pathname;
+        url.pathname = language === "en" ? `${root}en/` : root;
+        url.searchParams.set("lang", language);
+        window.location.replace(url);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111a20" />
+    <meta
+      name="description"
+      content="HomeBudget: wspólny budżet domowy, import CSV, analizy i cele oszczędnościowe. Wypróbuj interaktywne demo i uruchom aplikację u siebie z gotowych obrazów Docker."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pl_PL" />
+    <meta property="og:title" content="HomeBudget — Wspólny dom. Jasny plan." />
+    <meta
+      property="og:description"
+      content="Wasze wydatki, rachunki i cele w jednym miejscu. Bez abonamentu. Na Waszych zasadach."
+    />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:image" content="__SITE_URL__social-preview.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="__SITE_URL__" />
+    <link rel="alternate" hreflang="pl" href="__SITE_URL__" />
+    <link rel="alternate" hreflang="en" href="__SITE_URL__en/" />
+    <link rel="alternate" hreflang="x-default" href="__SITE_URL__" />
+    <link rel="icon" href="../public/icon.svg" type="image/svg+xml" />
+    <title>HomeBudget — Wspólny dom. Jasny plan.</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Przejdź do treści</a>
+    <svg
+      class="icon-library"
+      aria-hidden="true"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <symbol id="i-home" viewBox="0 0 24 24">
+          <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-8H9v8H4a1 1 0 0 1-1-1z" />
+        </symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24">
+          <path d="M20.5 15.5A8.5 8.5 0 0 1 8.5 3.5a8.7 8.7 0 1 0 12 12z" />
+        </symbol>
+        <symbol id="i-sun" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="4" />
+          <path
+            d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+          />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M4 12h16m-6-6 6 6-6 6" />
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24">
+          <path d="m5 12 4 4L19 6" />
+        </symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24">
+          <rect x="8" y="8" width="12" height="12" rx="2" />
+          <path d="M15 8V4H4v11h4" />
+        </symbol>
+        <symbol id="i-pie" viewBox="0 0 24 24">
+          <path d="M12 3v9h9A9 9 0 0 0 12 3zM8 4a9 9 0 1 0 12 12" />
+        </symbol>
+        <symbol id="i-file" viewBox="0 0 24 24">
+          <path d="M14 3H5v18h14V8l-5-5v5h5M8 12h8m-8 4h5" />
+        </symbol>
+        <symbol id="i-calendar" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="16" rx="3" />
+          <path d="M7 3v4m10-4v4M3 11h18m-13 5h2m4 0h2" />
+        </symbol>
+        <symbol id="i-target" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="4" />
+          <path d="m12 12 8-8" />
+        </symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24">
+          <rect x="4" y="10" width="16" height="11" rx="3" />
+          <path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3" />
+        </symbol>
+        <symbol id="i-layers" viewBox="0 0 24 24">
+          <path d="m3 7 9-4 9 4-9 4zm0 5 9 4 9-4M3 17l9 4 9-4" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <header class="site-header wrap">
+      <a class="brand" href="#" aria-label="HomeBudget — strona główna"
+        ><span class="brand-mark"
+          ><svg><use href="#i-home" /></svg></span
+        >HomeBudget<span class="brand-dot">.</span></a
+      >
+      <nav aria-label="Menu strony">
+        <a href="#mozliwosci">Możliwości</a><a href="#instalacja">Instalacja</a
+        ><a href="#pytania">Pytania</a>
+      </nav>
+      <div class="header-actions">
+        <div class="site-language" role="group" aria-label="Język strony">
+          <a
+            href="./en/?lang=en"
+            hreflang="en"
+            lang="en"
+            data-language="en"
+            aria-label="English"
+            >EN</a
+          ><a
+            href="./?lang=pl"
+            hreflang="pl"
+            lang="pl"
+            data-language="pl"
+            aria-label="Polski"
+            aria-current="page"
+            >PL</a
+          >
+        </div>
+        <button
+          class="site-theme"
+          type="button"
+          aria-label="Włącz jasny wygląd"
+          title="Włącz jasny wygląd"
+          aria-pressed="false"
+        >
+          <svg class="theme-moon"><use href="#i-moon" /></svg
+          ><svg class="theme-sun"><use href="#i-sun" /></svg>
+        </button>
+        <a class="header-demo" href="./demo/?lang=pl"
+          >Otwórz demo <svg><use href="#i-arrow" /></svg
+        ></a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span class="status-dot"></span> Wasz budżet. Wasze miejsce.
+          </p>
+          <h1 id="hero-title">Wspólny dom.<br /><span>Jasny plan.</span></h1>
+          <p class="hero-description">
+            Mniej zgadywania, gdzie znikają pieniądze.<br
+              class="desktop-break"
+            />
+            Więcej miejsca na to, co dla Was ważne.
+          </p>
+          <p class="hero-detail">
+            Wydatki, rachunki i oszczędności w jednym, spokojnym widoku.
+            Aplikacja, którą uruchamiasz u siebie.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="./demo/"
+              >Wypróbuj na żywo <svg><use href="#i-arrow" /></svg></a
+            ><a class="button quiet" href="#instalacja">Zainstaluj u siebie</a>
+          </div>
+          <div class="hero-assurances">
+            <span
+              ><svg><use href="#i-check" /></svg>Bez abonamentu</span
+            ><span
+              ><svg><use href="#i-check" /></svg>Otwarty kod · MIT</span
+            >
+          </div>
+        </div>
+        <div class="balance-scene">
+          <div class="balance-note">
+            <span class="note-line"></span>Dobry plan zaczyna się<br />od
+            pełnego obrazu.
+          </div>
+          <article
+            class="balance-card"
+            aria-label="Przykładowy bilans gospodarstwa domowego"
+          >
+            <div class="balance-top">
+              <span class="receipt-mark"
+                ><svg><use href="#i-home" /></svg></span
+              ><span>DOMOWY BILANS<small>Przykładowe dane</small></span
+              ><span class="receipt-number">HB / 01</span>
+            </div>
+            <div
+              class="period-tabs"
+              role="group"
+              aria-label="Okres przykładowego bilansu"
+            >
+              <button class="selected" data-period="month" aria-pressed="true">
+                Miesiąc</button
+              ><button data-period="year" aria-pressed="false">Rok</button>
+            </div>
+            <div class="receipt-line income-line">
+              <span>Wpływy do domu</span
+              ><strong data-income>10 800,00 <small>zł</small></strong>
+            </div>
+            <div class="allocation" aria-hidden="true">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="receipt-details">
+              <p>
+                <span><i class="dot home"></i>Dom i rachunki</span
+                ><b data-value="3200">3 200,00 zł</b>
+              </p>
+              <p>
+                <span><i class="dot food"></i>Codzienne zakupy</span
+                ><b data-value="1680.40">1 680,40 zł</b>
+              </p>
+              <p>
+                <span><i class="dot life"></i>Transport i życie</span
+                ><b data-value="1359.80">1 359,80 zł</b>
+              </p>
+            </div>
+            <div class="receipt-bottom">
+              <div>
+                <span>Zostaje na Wasze plany</span
+                ><strong data-remaining>4 559,80 <small>zł</small></strong>
+              </div>
+              <span class="balance-check"
+                ><svg><use href="#i-check" /></svg
+              ></span>
+            </div>
+            <p class="receipt-footnote">Każda kwota ma swoje miejsce.</p>
+          </article>
+          <div class="plan-tag">
+            <svg><use href="#i-target" /></svg
+            ><span
+              >Wspólny wyjazd<small>Krok bliżej z każdym miesiącem</small></span
+            >
+          </div>
+        </div>
+      </section>
+
+      <div class="principles wrap">
+        <span>Jedno miejsce na domowe finanse</span
+        ><span>Docker · amd64 / arm64</span
+        ><a
+          href="https://github.com/MaciejDybowski/home-budget"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Tworzony otwarcie na GitHub ↗</a
+        >
+      </div>
+
+      <section
+        class="product-section wrap"
+        id="zobacz"
+        aria-labelledby="product-title"
+      >
+        <div class="section-intro">
+          <div>
+            <p class="eyebrow">Zobacz swój miesiąc</p>
+            <h2 id="product-title">
+              Nie kolejny arkusz.<br />Po prostu pełny obraz.
+            </h2>
+          </div>
+          <p>
+            Ile wydaliście? Co jeszcze przed Wami?<br />I co możecie już
+            odłożyć? Bez szukania<br class="desktop-break" />
+            odpowiedzi w kilku miejscach.
+          </p>
+        </div>
+        <a
+          class="product-window"
+          href="./demo/"
+          aria-label="Otwórz działającą aplikację demonstracyjną"
+          ><div class="window-bar">
+            <span class="window-dots"><i></i><i></i><i></i></span
+            ><span>HomeBudget / Wasz miesiąc</span
+            ><span class="window-live"
+              >Sprawdź w demo <svg><use href="#i-arrow" /></svg
+            ></span>
+          </div>
+          <img
+            src="./media/home-desktop.png"
+            alt="Pulpit HomeBudget: miesięczne wydatki, dostępny budżet i porównanie przychodów oraz wydatków na fikcyjnych danych"
+            width="1440"
+            height="1000"
+            loading="lazy"
+          /><span class="product-caption"
+            >Prawdziwy interfejs. Wyłącznie fikcyjne dane.</span
+          ></a
+        >
+      </section>
+
+      <section
+        class="features-section wrap"
+        id="mozliwosci"
+        aria-labelledby="features-title"
+      >
+        <div class="section-intro">
+          <div>
+            <p class="eyebrow">Praktyczne, nie przekombinowane</p>
+            <h2 id="features-title">Na zwykłe zakupy.<br />I większe plany.</h2>
+          </div>
+          <p>
+            Od paragonu za pieczywo po wspólny wyjazd.<br />Te same finanse,
+            różne perspektywy.
+          </p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature feature-import">
+            <div class="feature-heading">
+              <span class="feature-icon"
+                ><svg><use href="#i-file" /></svg></span
+              ><span class="feature-kicker">Mniej przepisywania</span>
+            </div>
+            <h3>Wyciąg z banku.<br />Porządek w kilka kroków.</h3>
+            <p>
+              Importuj CSV, dopasuj kolumny i zatwierdź operacje. Szablony,
+              reguły i katalog sklepów pomagają przy kolejnych plikach.
+            </p>
+            <div
+              class="import-example"
+              aria-label="Przykładowe przypisania importu"
+            >
+              <div>
+                <span>Zakupy kartą · MARKET</span
+                ><svg><use href="#i-arrow" /></svg
+                ><b><i class="dot food"></i>Żywność</b>
+              </div>
+              <div>
+                <span>Opłata · MUZYKA PLUS</span
+                ><svg><use href="#i-arrow" /></svg
+                ><b><i class="dot life"></i>Subskrypcja</b>
+              </div>
+              <p>
+                <svg><use href="#i-check" /></svg>Ty zatwierdzasz. Aplikacja
+                zapamiętuje.
+              </p>
+            </div>
+          </article>
+          <article class="feature feature-analytics">
+            <div class="feature-heading">
+              <span class="feature-icon"
+                ><svg><use href="#i-pie" /></svg></span
+              ><span class="feature-kicker">Więcej zrozumienia</span>
+            </div>
+            <h3>Za każdą sumą<br />konkretne transakcje.</h3>
+            <p>
+              Porównuj miesiące, kwartały i lata. Otwórz kategorię i zobacz
+              dokładnie, z czego składa się jej wynik.
+            </p>
+            <div class="mini-chart" aria-hidden="true">
+              <span style="--bar: 43%"></span><span style="--bar: 65%"></span
+              ><span style="--bar: 51%"></span><span style="--bar: 80%"></span
+              ><span style="--bar: 59%"></span><span style="--bar: 72%"></span
+              ><span style="--bar: 47%"></span><span style="--bar: 61%"></span>
+            </div>
+            <a class="inline-link" href="./demo/#/analytics"
+              >Sprawdź analizy <svg><use href="#i-arrow" /></svg
+            ></a>
+          </article>
+          <article class="feature feature-small">
+            <span class="feature-icon"
+              ><svg><use href="#i-calendar" /></svg
+            ></span>
+            <h3>Rachunki bez niespodzianek</h3>
+            <p>
+              Subskrypcje i stałe opłaty z harmonogramem. Plan to plan — wydatek
+              powstaje dopiero po Twoim potwierdzeniu.
+            </p>
+          </article>
+          <article class="feature feature-small">
+            <span class="feature-icon"
+              ><svg><use href="#i-target" /></svg
+            ></span>
+            <h3>Cele, które widać</h3>
+            <p>
+              Wakacje, remont, finansowa poduszka. Oddziel zaplanowane
+              oszczędności od pieniędzy faktycznie odłożonych.
+            </p>
+          </article>
+          <article class="feature feature-small">
+            <span class="feature-icon"
+              ><svg><use href="#i-layers" /></svg
+            ></span>
+            <h3>Sklepy w jednym katalogu</h3>
+            <p>
+              Poprawiaj nazwy i scalaj powtórzenia. Historia oraz statystyki
+              podążają za Twoimi zmianami.
+            </p>
+          </article>
+          <article class="feature feature-small">
+            <span class="feature-icon"
+              ><svg><use href="#i-lock" /></svg
+            ></span>
+            <h3>Twoja instancja, Twoje dane</h3>
+            <p>
+              Uruchom u siebie. Bez wysyłania wyciągów do zewnętrznych usług
+              klasyfikujących i bez obowiązkowego konta w chmurze.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="demo-section wrap" aria-labelledby="demo-title">
+        <div class="demo-copy">
+          <p class="eyebrow">Najlepiej sprawdzić samemu</p>
+          <h2 id="demo-title">
+            Kliknij. Dodaj wydatek.<br />Zmień zdanie. Spróbuj jeszcze raz.
+          </h2>
+          <p>
+            To działająca aplikacja, a nie pokaz slajdów. Przejrzyj przykładowy
+            rok, ustaw budżet, popraw sklep. Zmiany zostają tylko w Twojej
+            przeglądarce.
+          </p>
+          <a class="button primary" href="./demo/"
+            >Otwórz interaktywne demo <svg><use href="#i-arrow" /></svg></a
+          ><span class="demo-detail"
+            >Bez rejestracji · fikcyjne dane · reset jednym kliknięciem</span
+          >
+        </div>
+        <div class="demo-aside">
+          <span class="demo-orbit"
+            ><svg><use href="#i-home" /></svg
+          ></span>
+          <p>
+            Wasz dom ma już<br />wystarczająco dużo spraw.<br /><strong
+              >Finanse mogą być prostsze.</strong
+            >
+          </p>
+        </div>
+      </section>
+
+      <section
+        class="install-section wrap"
+        id="instalacja"
+        aria-labelledby="install-title"
+      >
+        <div class="section-intro">
+          <div>
+            <p class="eyebrow">U siebie znaczy u siebie</p>
+            <h2 id="install-title">
+              Docker gotowy?<br />Reszta to jedno polecenie.
+            </h2>
+          </div>
+          <p>
+            Gotowe obrazy z GitHub Container Registry.<br />Bez lokalnego
+            budowania.<br />Bez osobnej instalacji Node.js i bazy danych.
+          </p>
+        </div>
+        <div class="terminal">
+          <div class="terminal-top">
+            <span><span class="status-dot"></span> Instalacja HomeBudget</span
+            ><span>Terminal / Docker Compose</span>
+          </div>
+          <div class="terminal-command">
+            <span class="terminal-prompt" aria-hidden="true">$</span
+            ><code id="install-command"
+              >curl -fsSL
+              https://github.com/MaciejDybowski/home-budget/releases/latest/download/install.sh
+              | sh</code
+            ><button
+              class="copy-command"
+              aria-label="Kopiuj polecenie instalacji"
+            >
+              <svg><use href="#i-copy" /></svg><span>Kopiuj</span>
+            </button>
+          </div>
+          <p class="copy-status" role="status" aria-live="polite"></p>
+          <div class="terminal-bottom">
+            <span
+              ><svg><use href="#i-check" /></svg>Hasło bazy generowane
+              automatycznie</span
+            ><span
+              ><svg><use href="#i-check" /></svg>Wersjonowane obrazy</span
+            ><span
+              ><svg><use href="#i-check" /></svg>Dane na Twoim dysku</span
+            >
+          </div>
+        </div>
+        <div class="install-notes">
+          <p>
+            Potrzebujesz Dockera z Compose v2 oraz zaufanej sieci LAN/VPN.
+            Wydania znajdziesz na GitHub. Nie musisz zakładać konta w registry.
+          </p>
+          <a
+            class="inline-link"
+            href="https://github.com/MaciejDybowski/home-budget/blob/master/docs/deployment.md"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Instrukcja instalacji <svg><use href="#i-arrow" /></svg
+          ></a>
+        </div>
+        <p class="availability-note" id="release-status">
+          Dostępność instalatora zależy od opublikowanego wydania.
+          <a
+            href="https://github.com/MaciejDybowski/home-budget/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Sprawdź Releases ↗</a
+          >
+        </p>
+      </section>
+
+      <section
+        class="faq-section wrap"
+        id="pytania"
+        aria-labelledby="faq-title"
+      >
+        <div>
+          <p class="eyebrow">Dobrze wiedzieć</p>
+          <h2 id="faq-title">Bez drobnego druku.</h2>
+          <p>Najważniejsze odpowiedzi,<br />zanim zaprosisz domowników.</p>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              Czy HomeBudget jest naprawdę bezpłatny?<span>+</span>
+            </summary>
+            <p>
+              Tak. Kod jest dostępny na licencji MIT, również do użytku
+              komercyjnego. Przy udostępnianiu kopii zachowaj informację o
+              autorze i licencję. Koszt własnego serwera lub hostingu zależy od
+              Twojego środowiska.
+            </p>
+          </details>
+          <details>
+            <summary>Gdzie są przechowywane moje dane?<span>+</span></summary>
+            <p>
+              We własnej instalacji — w PostgreSQL na Twoim komputerze lub
+              serwerze. Publiczne demo korzysta tylko z fikcyjnych danych w
+              pamięci przeglądarki i jej localStorage. Nie łączy się z Twoją
+              bazą ani domowym serwerem.
+            </p>
+          </details>
+          <details>
+            <summary>Czy działa na telefonie?<span>+</span></summary>
+            <p>
+              Tak, interfejs dopasowuje się do telefonu. Aplikację możesz dodać
+              do ekranu początkowego jako PWA. Na iPhone instalacja PWA wymaga
+              połączenia HTTPS z zaufanym certyfikatem.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Czy mogę wystawić instancję publicznie?<span>+</span>
+            </summary>
+            <p>
+              Obecna wersja to jedna wspólna przestrzeń domowa bez logowania.
+              Korzystaj z niej w zaufanej sieci lub przez VPN. Publiczna strona
+              i demo są oddzielone od rzeczywistych danych i nie udostępniają
+              backendu produkcyjnego.
+            </p>
+          </details>
+          <details>
+            <summary>Co mogę zrobić w demo?<span>+</span></summary>
+            <p>
+              Dodawać i edytować fikcyjne transakcje, planować budżet,
+              przeglądać analizy, zarządzać sklepami, celami i opłatami. Import
+              pokazuje bezpieczną symulację na gotowych przykładach; pełny
+              odczyt CSV i uczenie reguł działają we własnej instalacji.
+              Przycisk „Resetuj demo” przywraca przykłady.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Jak aktualizować i zabezpieczyć finanse?<span>+</span>
+            </summary>
+            <p>
+              Aktualizacje wybierasz świadomie przez numer wersji obrazów. Zanim
+              je uruchomisz, zrób kopię bazy i zachowaj swoją konfigurację.
+              Instrukcje backupu i odtwarzania są częścią dokumentacji. Pierwsza
+              instalacja tworzy pustą bazę automatycznie.
+            </p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer wrap">
+      <div>
+        <a class="brand" href="#"
+          ><span class="brand-mark"
+            ><svg><use href="#i-home" /></svg></span
+          >HomeBudget<span class="brand-dot">.</span></a
+        >
+        <p>Wspólny dom. Jasny plan.</p>
+      </div>
+      <div class="footer-links">
+        <a href="./demo/">Demo</a
+        ><a
+          href="https://github.com/MaciejDybowski/home-budget"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub ↗</a
+        ><a
+          href="https://github.com/MaciejDybowski/home-budget/blob/master/LICENSE"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Licencja MIT</a
+        >
+      </div>
+      <p class="author">
+        Projekt i rozwój:
+        <a
+          href="https://github.com/MaciejDybowski"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Maciej Dybowski</a
+        ><br /><span>Bez trackerów i zewnętrznych fontów.</span>
+      </p>
+    </footer>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
