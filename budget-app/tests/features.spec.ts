@@ -7,6 +7,7 @@ import type {
 } from "../src/household/features";
 
 test.beforeEach(async ({ page }) => {
+  await page.route("**/api/v1/auth/status", route => route.fulfill({ json: { enabled: false, authenticated: false } }));
   const date = new Date().toISOString().slice(0, 10);
   const month = date.slice(0, 7);
   const category = {

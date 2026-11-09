@@ -26,4 +26,9 @@ docker compose exec -T postgres psql -U postgres -d budget_restore_check -c 'SEL
 
 Sprawdź również przychody, migracje i istotne zestawienia. Po zakończeniu możesz usunąć wyłącznie utworzoną do testu bazę `budget_restore_check`.
 
+Od 2026.11.1 kopia zawiera także techniczne sesje logowania. Po odtworzeniu
+produkcyjnym unieważnij wcześniejsze sesje (np. administracyjnym resetem hasła),
+żeby odtworzenie backupu nie przywróciło sesji wylogowanych po wykonaniu kopii.
+Login i hash są w technicznej tabeli `AuthAccount`, również objętej kopią bazy.
+
 Odzyskiwanie produkcji wymaga zatrzymania zapisów i świadomego przełączenia aplikacji na zweryfikowane dane. Zachowaj dotychczasową bazę do czasu uzgodnienia stanu. Przeczytaj także [database.md](database.md).

@@ -25,6 +25,11 @@ npm run dev
 
 Frontend: `http://localhost:8080`, proxy API: `localhost:3000`. `VITE_API_URL` pozwala zmienić cel proxy.
 
+Lokalnie bez logowania pozostaw `AUTH_MODE=none` (lub nie ustawiaj go w starszym
+środowisku). Testując logowanie przez proxy Vite, ustaw na backendzie
+`AUTH_MODE=local`, `APP_ORIGIN=http://localhost:8080` oraz
+`AUTH_COOKIE_SECURE=false`. Wartość Origin dotyczy adresu przeglądarki, nie API.
+
 ## Testy
 
 Backend:
@@ -42,6 +47,20 @@ TEST_DATABASE_URL=postgresql://user:password@localhost:5432/budget_integration n
 ```
 
 Te testy czyszczą wskazaną bazę. Nie wskazuj bazy z własnymi finansami.
+
+Obejmują również rzeczywiste sesje, CSRF, limity prób oraz oba tryby auth.
+Test pełnego stosu (Chromium + zbudowany frontend/backend + PostgreSQL), z katalogu
+głównego po zbudowaniu obu aplikacji i migracji izolowanej bazy:
+
+```sh
+node --env-file=.env.test.local scripts/test-auth-stack.mjs
+python3 scripts/test-installer.py
+```
+
+W ignorowanym `.env.test.local` ustaw `TEST_DATABASE_URL` do `budget_test` lub
+`budget_integration`. Skrypt pełnego stosu uruchamia tylko lokalny serwer,
+sprawdza login, restart i logout; nie aktualizuje żadnej działającej instalacji.
+Test instalatora używa atrapy Docker i nie uruchamia prawdziwych kontenerów.
 
 Frontend:
 

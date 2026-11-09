@@ -7,7 +7,11 @@
 - `budget-app-backend/prisma/`: schemat PostgreSQL i pełna historia migracji.
 - Nginx serwuje SPA i przekazuje `/api` do NestJS. Baza i API pozostają w sieci Compose.
 
-To jedna przestrzeń gospodarstwa domowego, bez uwierzytelniania i podziału na tenantów. Nie jest usługą SaaS.
+To jedna przestrzeń gospodarstwa domowego, bez podziału na tenantów. Nie jest usługą SaaS.
+Opcjonalny `AuthModule` chroni całe API wspólnym loginem i hasłem (`AUTH_MODE=local`)
+lub zachowuje dostęp bez logowania w zaufanej sieci (`none`). Sesje i limity prób
+są w PostgreSQL; szczegóły w [logowaniu](authentication.md). Root UI nie montuje
+widoków budżetu przed sprawdzeniem dostępu. Zmiana trybu nie wymaga rebuilda.
 
 ## Zasady danych
 

@@ -1,11 +1,11 @@
 # Wdrożenie zewnętrzne — Render + Neon
 
-**Na tym etapie wyłącznie fikcyjne dane testowe. Aplikacja nie ma logowania:
-każdy mający dostęp do adresu może odczytywać, zmieniać i usuwać dane. HTTPS,
-nieznany adres i blokada indeksowania nie zastępują uwierzytelniania.**
+**Przed użyciem prawdziwych danych wymagane są logowanie i HTTPS.**
+Blueprint od wersji 2026.11.1 ustawia `AUTH_MODE=local`. Wcześniejsze testowe
+instancje bez logowania pozostają niezabezpieczone do świadomej aktualizacji.
 
 Wariant jest niezależny od instalacji domowej Docker Compose. Nie kopiuj do niego
-domowej bazy, plików CSV ani konfiguracji serwera. Logowanie jest osobnym etapem.
+domowej bazy, plików CSV ani konfiguracji serwera. [Konfiguracja logowania](authentication.md).
 
 ## Architektura
 
@@ -41,7 +41,13 @@ Po opublikowaniu plików konfiguracyjnych w GitHub:
 1. W Render wybierz **New → Blueprint**, podłącz repozytorium i wybierz gałąź
    z zatwierdzoną konfiguracją `render.yaml`.
 2. Sprawdź plan **Free**, region i wyłączone automatyczne wdrożenia.
-3. Uzupełnij sekrety `DATABASE_URL` i `DATABASE_URL_UNPOOLED` adresami z Neon.
+3. Uzupełnij sekrety `DATABASE_URL` i `DATABASE_URL_UNPOOLED` adresami z Neon,
+   oraz `APP_ORIGIN` dokładnym adresem HTTPS przydzielonym usłudze
+   (np. `https://your-budget.onrender.com`). Login i hasło ustawisz w przeglądarce
+   natychmiast po pierwszym starcie. Kreator jest dostępny pierwszemu odwiedzającemu,
+   bez kodu instalacji — nie udostępniaj adresu przed ukończeniem konfiguracji.
+   `AUTH_COOKIE_SECURE=true` pozostaw włączone. Brak poprawnych ustawień
+   zatrzyma start — uzupełnij je przed ponownym wdrożeniem.
 4. Utwórz usługę. Render wykona `scripts/render-build.sh`, następnie
    `scripts/render-start.sh` i udostępni adres `https://…onrender.com`.
 

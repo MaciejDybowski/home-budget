@@ -9,10 +9,12 @@ import { PrismaModule } from './prisma.module';
 import { MetersModule } from './meters/meters.module';
 import { HouseholdModule } from './household/household.module';
 import { HealthController } from './health.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   controllers: [HealthController],
   imports: [
+    AuthModule,
     PrismaModule,
     CategoriesModule,
     SourcesModule,

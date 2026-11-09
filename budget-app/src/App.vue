@@ -1,251 +1,207 @@
 <script setup lang="ts">
-import { tr, locale } from "./i18n";
+import { onMounted, onUnmounted, ref } from "vue";
+import axios from "axios";
+import { auth, authReady, authBusy, login, logout, refreshAuth } from "./auth";
+import { tr, translatedError } from "./i18n";
 import LanguageSwitch from "./i18n/LanguageSwitch.vue";
-import {
-  computed,
-  defineAsyncComponent,
-  onMounted,
-  onUnmounted,
-  ref,
-  watch,
-} from "vue";
-import { useRoute, useRouter } from "vue-router";
-import {
-  House,
-  ArrowDownUp,
-  ChartPie,
-  Gauge,
-  Ellipsis,
-  Plus,
-  ChevronLeft,
-  ChevronRight,
-  Upload,
-  RefreshCw,
-  Moon,
-  Sun,
-} from "@lucide/vue";
-import EntryEditor from "./household/EntryEditor.vue";
-import DateInput from "./household/DateInput.vue";
-import { validMonth } from "./household/view-state";
-import {
-  edit,
-  error,
-  load,
-  loading,
-  month,
-  state,
-  toast,
-} from "./household/store";
-const DemoNotice =
-  import.meta.env.VITE_DEMO_MODE === "true"
-    ? defineAsyncComponent(() => import("./household/demo/DemoNotice.vue"))
-    : null;
-const route = useRoute();
-const router = useRouter();
-const isNavActive = (path: string) =>
-  route.path === path ||
-  (path === "/more" &&
-    ["/analytics", "/recurring", "/import"].includes(route.path));
-const nav = computed(() => [
-  { path: "/", label: tr("Start"), icon: House },
-  { path: "/transactions", label: tr("Transakcje"), icon: ArrowDownUp },
-  { path: "/budget", label: tr("Budżet"), icon: ChartPie },
-  { path: "/meters", label: tr("Liczniki"), icon: Gauge },
-  { path: "/more", label: tr("Więcej"), icon: Ellipsis },
-]);
-const dark = ref(
-  localStorage.getItem("theme") === "dark" ||
-    (!localStorage.getItem("theme") &&
-      matchMedia("(prefers-color-scheme: dark)").matches),
-);
-watch(
-  dark,
-  (value) => {
-    document.documentElement.dataset.theme = value ? "dark" : "light";
-    localStorage.setItem("theme", value ? "dark" : "light");
-  },
-  { immediate: true },
-);
-const updateReady = ref(false);
-const onUpdate = () => {
-  updateReady.value = true;
-};
-const reloadApp = () => window.dispatchEvent(new Event("pwa-apply"));
-function shiftMonth(delta: number) {
-  const [year, value] = month.value.split("-").map(Number);
-  month.value = new Date(Date.UTC(year!, value! - 1 + delta, 1))
-    .toISOString()
-    .slice(0, 7);
+import AppShell from "./AppShell.vue";
+
+const username = ref("");
+const password = ref("");
+const confirmation = ref("");
+const busy = ref(false);
+const error = ref("");
+const failedLogout = ref(false);
+async function check() {
+  busy.value = true;
+  error.value = "";
+  try {
+    await refreshAuth();
+  } catch {
+    error.value = tr(
+      "Nie można sprawdzić dostępu. Sprawdź połączenie i spróbuj ponownie.",
+    );
+  } finally {
+    busy.value = false;
+  }
 }
-const showMonth = computed(
-  () =>
-    !["/more", "/import", "/analytics"].includes(route.path) &&
-    !(route.path === "/transactions" && route.query.from && route.query.to),
-);
-watch(
-  () => route.query.month,
-  (value) => {
-    if (typeof value === "string" && validMonth(value)) month.value = value;
-  },
-  { immediate: true },
-);
-watch(month, () => {
-  void load();
-  if (route.query.month && route.query.month !== month.value)
-    void router.replace({ query: { ...route.query, month: month.value } });
-});
-watch(locale, () => {
-  if (import.meta.env.VITE_DEMO_MODE === "true") void load();
-});
-watch(
-  [() => route.meta.title, locale],
-  ([title]) => {
-    document.title = `${tr(String(title || "HomeBudget"))} · HomeBudget${import.meta.env.VITE_DEMO_MODE === "true" ? " · Demo" : ""}`;
-  },
-  { immediate: true },
-);
+async function submit() {
+  if (auth.value.setupRequired && password.value !== confirmation.value) {
+    error.value = tr("Hasła nie są takie same.");
+    return;
+  }
+  busy.value = true;
+  error.value = "";
+  try {
+    await login(username.value, password.value, auth.value.setupRequired);
+    failedLogout.value = false;
+  } catch (cause) {
+    error.value =
+      axios.isAxiosError(cause) && cause.response?.data?.message
+        ? translatedError(cause.response.data.message)
+        : tr("Nie można się zalogować. Sprawdź połączenie i spróbuj ponownie.");
+  } finally {
+    password.value = "";
+    confirmation.value = "";
+    busy.value = false;
+  }
+}
+function logoutFailed() {
+  failedLogout.value = true;
+  error.value = tr(
+    "Nie potwierdzono wylogowania na serwerze. Sprawdź połączenie i spróbuj ponownie.",
+  );
+}
+async function retryLogout() {
+  busy.value = true;
+  try {
+    await logout();
+    failedLogout.value = false;
+    error.value = "";
+  } catch {
+    logoutFailed();
+  } finally {
+    busy.value = false;
+  }
+}
 onMounted(() => {
-  load();
-  window.addEventListener("pwa-update", onUpdate);
+  void check();
+  window.addEventListener("homebudget-logout-failed", logoutFailed);
 });
-onUnmounted(() => window.removeEventListener("pwa-update", onUpdate));
+onUnmounted(() =>
+  window.removeEventListener("homebudget-logout-failed", logoutFailed),
+);
 </script>
 
 <template>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <RouterLink to="/" class="brand"
-        ><span class="brand-mark"><House :size="23" /></span
-        ><span
-          >HomeBudget<small>{{ tr("Nasze finanse. Razem.") }}</small></span
-        ></RouterLink
-      >
-      <nav :aria-label="tr('Menu główne')">
-        <RouterLink
-          v-for="item in nav"
-          :key="item.path"
-          :to="item.path"
-          :class="['nav-item', { active: isNavActive(item.path) }]"
-          :aria-current="isNavActive(item.path) ? 'page' : undefined"
-          ><component :is="item.icon" :size="21" />{{ item.label }}</RouterLink
-        >
-      </nav>
-      <RouterLink to="/import" class="nav-item import-link"
-        ><Upload :size="20" />{{ tr("Import CSV") }}</RouterLink
-      >
-    </aside>
-    <main class="main-content" id="main">
-      <header class="topbar">
-        <RouterLink to="/" class="mobile-brand"
-          >HomeBudget<span>●</span></RouterLink
-        ><span class="desktop-only muted small">{{
-          tr("Wspólny dom, wspólny plan")
-        }}</span>
-        <div class="topbar-actions">
-          <LanguageSwitch />
-          <button
-            class="icon-button"
-            :aria-label="
-              dark ? tr('Włącz jasny wygląd') : tr('Włącz ciemny wygląd')
-            "
-            @click="dark = !dark"
-          >
-            <Sun v-if="dark" :size="20" /><Moon v-else :size="20" /></button
-          ><button
-            class="icon-button"
-            :aria-label="tr('Odśwież dane')"
-            :disabled="loading"
-            @click="load"
-          >
-            <RefreshCw :size="19" :class="{ spinning: loading }" />
-          </button>
-        </div>
-      </header>
-      <DemoNotice v-if="DemoNotice" />
-      <div v-if="updateReady" class="notice">
+  <AppShell v-if="authReady && (!auth.enabled || auth.authenticated)" />
+  <main v-else class="auth-page">
+    <section class="auth-card">
+      <div class="auth-language"><LanguageSwitch /></div>
+      <p class="eyebrow">HomeBudget</p>
+      <h1>
         {{
-          tr("Nowa wersja jest gotowa. Zapisz otwarte formularze, a następnie")
+          auth.setupRequired
+            ? tr("Ustaw login i hasło")
+            : tr("Wasz domowy budżet")
         }}
-        <button class="text-button" @click="reloadApp">
-          {{ tr("odśwież aplikację") }}</button
-        >.
-      </div>
-      <section class="page-heading">
-        <div>
-          <p class="eyebrow">
-            {{
-              route.path === "/meters"
-                ? tr("Dom pod kontrolą")
-                : route.path === "/import"
-                  ? tr("Historia bez przepisywania")
-                  : tr("Budżet domowy")
-            }}
-          </p>
-          <h1>{{ tr(String(route.meta.title || "HomeBudget")) }}</h1>
-        </div>
-        <button
-          v-if="state && ['/', '/transactions'].includes(route.path)"
-          class="button quick-add"
-          :aria-label="tr('Dodaj wydatek')"
-          @click="edit('expenses')"
-        >
-          <Plus :size="19" /><span>{{ tr("Dodaj wydatek") }}</span>
-        </button>
-      </section>
-      <div v-if="showMonth" class="month-picker">
-        <button
-          class="icon-button"
-          :aria-label="tr('Poprzedni miesiąc')"
-          @click="shiftMonth(-1)"
-        >
-          <ChevronLeft :size="20" />
-        </button>
-        <DateInput
-          v-model="month"
-          mode="month"
-          compact
-          :label="tr('Wybierz miesiąc')"
-          required
-        />
-        <button
-          class="icon-button"
-          :aria-label="tr('Następny miesiąc')"
-          @click="shiftMonth(1)"
-        >
-          <ChevronRight :size="20" />
-        </button>
-      </div>
-      <div v-if="error" class="empty-state" role="alert">
-        <House :size="36" />
-        <h2>{{ tr("Nie możemy pobrać danych") }}</h2>
-        <p>{{ tr(error) }}</p>
-        <button class="button" @click="load">
-          {{ tr("Spróbuj ponownie") }}
-        </button>
-      </div>
-      <div v-else-if="!state" class="loading-state" role="status">
-        <span class="loader" />{{ tr("Ładowanie domowego budżetu…") }}
-      </div>
-      <RouterView v-else />
-      <footer class="page-footer">
-        {{ tr("HomeBudget · Wasza wspólna perspektywa") }}
-      </footer>
-    </main>
-    <nav class="bottom-nav" :aria-label="tr('Menu główne')">
-      <RouterLink
-        v-for="item in nav"
-        :key="item.path"
-        :to="item.path"
-        :class="{ active: isNavActive(item.path) }"
-        :aria-current="isNavActive(item.path) ? 'page' : undefined"
-        ><component
-          :is="item.icon"
-          :size="22"
-          :stroke-width="isNavActive(item.path) ? 2.3 : 1.7"
-        /><span>{{ item.label }}</span></RouterLink
+      </h1>
+      <p class="muted">
+        {{
+          auth.setupRequired
+            ? tr(
+                "To pierwsze uruchomienie. Ustaw wspólny dostęp do tej instalacji.",
+              )
+            : tr("Zaloguj się, aby otworzyć wspólny budżet.")
+        }}
+      </p>
+      <p v-if="error" role="alert">{{ error }}</p>
+      <button
+        v-if="failedLogout"
+        class="button"
+        :disabled="busy || authBusy"
+        @click="retryLogout"
       >
-    </nav>
-    <div v-if="toast" class="toast" role="status">{{ tr(toast) }}</div>
-    <EntryEditor />
-  </div>
+        {{ tr("Ponów wylogowanie") }}
+      </button>
+      <form v-if="authReady" @submit.prevent="submit">
+        <label for="auth-username">{{ tr("Login") }}</label>
+        <input
+          id="auth-username"
+          v-model="username"
+          name="username"
+          autocomplete="username"
+          maxlength="64"
+          required
+          :disabled="busy || authBusy"
+        />
+        <label for="auth-password">{{ tr("Hasło") }}</label>
+        <input
+          id="auth-password"
+          v-model="password"
+          name="password"
+          type="password"
+          :autocomplete="
+            auth.setupRequired ? 'new-password' : 'current-password'
+          "
+          :minlength="auth.setupRequired ? 12 : undefined"
+          maxlength="1024"
+          required
+          :disabled="busy || authBusy"
+        />
+        <template v-if="auth.setupRequired">
+          <label for="auth-confirmation">{{ tr("Powtórz hasło") }}</label>
+          <input
+            id="auth-confirmation"
+            v-model="confirmation"
+            type="password"
+            autocomplete="new-password"
+            required
+            maxlength="1024"
+            :disabled="busy || authBusy"
+          />
+          <p class="muted">{{ tr("Hasło: co najmniej 12 znaków.") }}</p>
+        </template>
+        <button class="button" type="submit" :disabled="busy || authBusy">
+          {{
+            busy
+              ? tr("Logowanie…")
+              : auth.setupRequired
+                ? tr("Utwórz dostęp")
+                : tr("Zaloguj")
+          }}
+        </button>
+      </form>
+      <p v-else-if="busy" role="status">{{ tr("Sprawdzanie dostępu…") }}</p>
+      <button v-else class="button" @click="check">
+        {{ tr("Spróbuj ponownie") }}
+      </button>
+    </section>
+  </main>
 </template>
+
+<style scoped>
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.auth-card {
+  width: min(100%, 440px);
+  background: var(--surface, white);
+  padding: 32px;
+  border-radius: 24px;
+  box-shadow: 0 8px 40px #102b3310;
+}
+.auth-language {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+h1 {
+  margin: 12px 0;
+}
+form {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #9fadb5;
+  border-radius: 10px;
+  font: inherit;
+  background: var(--surface, white);
+  color: inherit;
+}
+form button {
+  margin-top: 12px;
+}
+[role="alert"] {
+  color: #a12626;
+  margin-top: 20px;
+}
+</style>

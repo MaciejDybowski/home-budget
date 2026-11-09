@@ -61,7 +61,7 @@ For a separate Docker installation with sample data, use `sh install.sh --demo`.
 
 ## Your own space
 
-HomeBudget currently provides one shared household workspace **without sign-in**. Keep your installation on a trusted home network or VPN. The public website and browser demo are separate from your real finances.
+HomeBudget provides one shared household workspace. From **2026.11.1**, choose optional [username/password sign-in](docs/authentication.md) (`--auth`) or explicitly disable it (`--no-auth`, trusted LAN/VPN only). New installations ask you to choose; updates preserve existing settings. Internet-facing installations require sign-in and HTTPS. The public website and browser demo are separate from your real finances.
 
 The app can be added to a phone’s home screen as a PWA. On iPhone, home-screen installation requires HTTPS with a trusted certificate.
 

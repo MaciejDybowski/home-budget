@@ -20,6 +20,12 @@ services:
         value: 0.0.0.0
       - key: SERVE_FRONTEND
         value: 'true'
+      - key: AUTH_MODE
+        value: local
+      - key: AUTH_COOKIE_SECURE
+        value: 'true'
+      - key: APP_ORIGIN
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: DATABASE_URL_UNPOOLED

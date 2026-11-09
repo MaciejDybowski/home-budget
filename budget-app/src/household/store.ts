@@ -1,6 +1,7 @@
 import { computed, reactive, ref } from "vue";
 import { tr, intlLocale, translatedError } from "../i18n";
 import axios from "axios";
+import { protectApi } from "../auth";
 import type { RecurringState } from "./features";
 import { validMonth, viewPreference } from "./view-state";
 
@@ -133,6 +134,7 @@ export const api = axios.create({
   timeout: 30000,
 });
 export const isDemo = import.meta.env.VITE_DEMO_MODE === "true";
+if (!isDemo) protectApi(api);
 if (isDemo) {
   api.defaults.adapter = async (config) => {
     const { demoAdapter } = await import("./demo/adapter");
@@ -288,6 +290,14 @@ export const editor = reactive<{
   fields: Field[];
   values: Record<string, any>;
 }>({ open: false, title: "", entity: "", id: "", fields: [], values: {} });
+window.addEventListener("homebudget-auth-reset", () => {
+  loadId++;
+  state.value = null;
+  loading.value = false;
+  error.value = "";
+  toast.value = "";
+  Object.assign(editor, { open: false, title: "", entity: "", id: "", fields: [], values: {} });
+});
 export function edit(
   entity: string,
   item?: Record<string, any>,

@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
 
   migrate:
-    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.0}}
+    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.1}}
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-budgetdb}?schema=public
     command: ["npm", "run", "db:deploy"]
@@ -27,11 +27,14 @@ services:
     restart: "no"
 
   budget-app-backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.0}}
+    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.1}}
     container_name: budget-backend
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-budgetdb}?schema=public
       PORT: 3000
+      AUTH_MODE: ${AUTH_MODE:-none}
+      APP_ORIGIN: ${APP_ORIGIN:-}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-true}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -41,7 +44,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://localhost:3000/api/v1/household?month='+new Date().toISOString().slice(0,7)).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://localhost:3000/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 30s
       timeout: 10s
@@ -49,7 +52,7 @@ services:
     restart: unless-stopped
 
   budget-app-frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-frontend:${HOMEBUDGET_VERSION:-2026.11.0}}
+    image: ${FRONTEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-frontend:${HOMEBUDGET_VERSION:-2026.11.1}}
     container_name: budget-frontend
     ports:
       - "${FRONTEND_BIND:-0.0.0.0}:${FRONTEND_PORT:-3001}:80"

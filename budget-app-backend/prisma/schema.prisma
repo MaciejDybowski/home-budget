@@ -6,6 +6,31 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model AuthSession {
+  tokenHash String @id
+  version String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([expiresAt])
+}
+
+model AuthAccount {
+  id Int @id @default(1)
+  username String
+  passwordHash String
+  version String
+  createdAt DateTime @default(now())
+}
+
+model AuthAttempt {
+  key String @id
+  attempts Int
+  resetAt DateTime
+
+  @@index([resetAt])
+}
+
 model Category {
   id                 String            @id @default(uuid())
   name               String

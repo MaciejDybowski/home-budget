@@ -1,5 +1,8 @@
 import { test, expect } from "@playwright/test";
 import type { CsvConfig } from "../src/household/csv";
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/v1/auth/status", route => route.fulfill({ json: { enabled: false, authenticated: false } }));
+});
 
 const csvConfig: CsvConfig = {
   delimiter: ";",

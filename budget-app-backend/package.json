@@ -1,6 +1,6 @@
 {
   "name": "budget-app-backend",
-  "version": "2026.11.0",
+  "version": "2026.11.1",
   "description": "",
   "author": "Maciej Dybowski (https://github.com/MaciejDybowski)",
   "private": true,
@@ -22,6 +22,7 @@
     "start:prod": "node dist/main.js",
     "db:deploy": "prisma migrate deploy",
     "db:demo": "node scripts/seed-demo.mjs",
+    "auth:hash": "node scripts/auth-password.mjs",
     "csv:inspect": "node scripts/inspect-import.mjs",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
@@ -38,6 +39,7 @@
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "@types/pg": "^8.16.0",
+    "argon2": "^0.45.2",
     "dotenv": "^16.6.1",
     "multer": "^2.5.0",
     "papaparse": "^5.7.0",

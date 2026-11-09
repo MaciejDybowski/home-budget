@@ -18,7 +18,8 @@ if destination.exists() or not destination.parent.is_dir():
 root = Path(__file__).resolve().parent.parent
 destination.mkdir()
 for name in ['docker-compose.yml', 'install.sh', 'env.example', 'LICENSE',
-             'docs/backups.md', 'docs/deployment.md', 'docs/database.md', 'docs/development.md']:
+              'docs/backups.md', 'docs/deployment.md', 'docs/database.md', 'docs/development.md',
+              'docs/authentication.md', 'docs/external-deployment.md']:
     text = (root / name).read_text()
     text = re.sub(
         r'\$\{HOMEBUDGET_VERSION:-[^}]+\}',
@@ -42,7 +43,8 @@ for name in ['docker-compose.yml', 'install.sh', 'env.example', 'LICENSE',
     'Run `sh install.sh` to download images and start the application. '
     'No application sources or local image builds are needed.\n\n'
     'For manual installation, copy `env.example` to `.env`, set a random hex '
-    'POSTGRES_PASSWORD, then run `docker compose up -d`.\n\n'
+    'POSTGRES_PASSWORD and configure authentication (see docs/authentication.md), '
+    'then run `docker compose up -d`.\n\n'
     'See `docs/deployment.md` and `docs/backups.md`. '
     'Author: Maciej Dybowski (https://github.com/MaciejDybowski). License: MIT.\n'
 )

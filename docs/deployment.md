@@ -1,7 +1,8 @@
 # Instalacja i utrzymanie
 
 Wariant internetowy: [wdrożenie zewnętrzne — Render + Neon](external-deployment.md).
-Na razie wyłącznie do testów z fikcyjnymi danymi, bez logowania.
+Przed publicznym udostępnieniem prawdziwych danych włącz
+[logowanie](authentication.md) (`AUTH_MODE=local`) oraz HTTPS.
 
 ## Nowa instalacja
 
@@ -22,6 +23,11 @@ docker compose up -d
 ```
 
 ## Konfiguracja
+
+Od wersji 2026.11.1 instalator pyta o logowanie na nowej instalacji; dostępne
+są też `--auth` i `--no-auth`. Aktualizacje zachowują `.env` i tryb. W konfiguracji
+ręcznej ustaw również parametry [logowania](authentication.md); domyślny przykład
+wymaga ich uzupełnienia. Brak `AUTH_MODE` zachowuje tryb bez logowania dla LAN/VPN.
 
 | Zmienna                           | Znaczenie                                                                |
 | --------------------------------- | ------------------------------------------------------------------------ |

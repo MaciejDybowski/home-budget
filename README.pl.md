@@ -48,7 +48,7 @@ Możesz też uruchomić `sh install.sh` w rozpakowanym katalogu — wtedy konfig
 
 Polecenia instalacyjne będą dostępne po opublikowaniu pierwszego wydania i publicznych obrazów GHCR.
 
-> To jedna wspólna przestrzeń domowa **bez logowania**, przeznaczona do zaufanego LAN/VPN. Publikacja kodu nie oznacza, że należy wystawiać swoją instancję w Internecie. Instalacja jako PWA na iPhone wymaga HTTPS z zaufanym certyfikatem; zwykła przeglądarka może korzystać z lokalnego HTTP.
+> To jedna wspólna przestrzeń domowa. Od wersji **2026.11.1** wybierasz [logowanie loginem i hasłem](docs/authentication.md) (`--auth`) albo tryb bez logowania (`--no-auth`, wyłącznie zaufany LAN/VPN). Nowa instalacja pyta o wybór; aktualizacja nie nadpisuje konfiguracji. Publiczna instancja wymaga logowania i HTTPS. Instalacja jako PWA na iPhone wymaga HTTPS z zaufanym certyfikatem.
 
 ## Możliwości
 

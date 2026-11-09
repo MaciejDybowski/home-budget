@@ -89,4 +89,5 @@ jobs:
         with:
           node-version: 24
       - run: sh scripts/test-distribution.sh
+      - run: python3 scripts/test-installer.py
       - run: cmp LICENSE budget-app/LICENSE && cmp LICENSE budget-app-backend/LICENSE

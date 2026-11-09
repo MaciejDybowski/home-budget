@@ -2,7 +2,7 @@
   "name": "budget-app",
   "private": true,
   "type": "module",
-  "version": "2026.11.0",
+  "version": "2026.11.1",
   "license": "MIT",
   "author": "Maciej Dybowski (https://github.com/MaciejDybowski)",
   "scripts": {
