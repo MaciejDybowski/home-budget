@@ -1,5 +1,8 @@
 # Instalacja i utrzymanie
 
+Wariant internetowy: [wdrożenie zewnętrzne — Render + Neon](external-deployment.md).
+Na razie wyłącznie do testów z fikcyjnymi danymi, bez logowania.
+
 ## Nowa instalacja
 
 Użyj `install.sh` według README. Domyślnie powstaje pusta baza; kategorie, źródła przychodów i rachunki dodaje się w „Więcej”. Jedna instalacja na jednym hoście korzysta z nazw kontenerów `budget-postgres`, `budget-backend`, `budget-frontend`.

@@ -8,6 +8,11 @@ module.exports = defineConfig({
     path: 'prisma/migrations',
   },
   datasource: {
-    url: env('DATABASE_URL'),
+    // Neon uses a pooled URL at runtime and a direct URL for migrations.
+    // Existing Compose installations only need DATABASE_URL as before.
+    url:
+      process.env.DATABASE_URL_UNPOOLED ||
+      process.env.DIRECT_URL ||
+      env('DATABASE_URL'),
   },
 });

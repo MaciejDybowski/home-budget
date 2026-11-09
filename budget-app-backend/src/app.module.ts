@@ -8,8 +8,10 @@ import { IncomesModule } from './incomes/incomes.module';
 import { PrismaModule } from './prisma.module';
 import { MetersModule } from './meters/meters.module';
 import { HouseholdModule } from './household/household.module';
+import { HealthController } from './health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     PrismaModule,
     CategoriesModule,

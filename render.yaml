@@ -1,0 +1,26 @@
+# External deployment: TEST DATA ONLY until authentication is available.
+services:
+  - type: web
+    name: homebudget-external
+    runtime: node
+    plan: free
+    region: frankfurt
+    autoDeployTrigger: 'off'
+    buildCommand: sh scripts/render-build.sh
+    startCommand: sh scripts/render-start.sh
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24.22.2
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=384
+      - key: HOST
+        value: 0.0.0.0
+      - key: SERVE_FRONTEND
+        value: 'true'
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        sync: false

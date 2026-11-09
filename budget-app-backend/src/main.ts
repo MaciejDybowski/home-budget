@@ -1,9 +1,16 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DatabaseErrorsFilter } from './errors.filter';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'node:path';
+import { configureFrontend } from './frontend';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  if (process.env.SERVE_FRONTEND === 'true') {
+    configureFrontend(app, join(__dirname, '..', 'public'));
+  }
 
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new DatabaseErrorsFilter());
