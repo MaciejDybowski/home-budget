@@ -160,7 +160,7 @@ test("requires login before loading finance data, supports PL/EN, logout and a r
   await expect(
     page.getByRole("heading", { name: "Transakcje", exact: true }),
   ).not.toBeVisible();
-  expect(signedIn).toBe(false);
+  await expect.poll(() => signedIn).toBe(false);
   expect(writes).toBe(0);
 });
 
