@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './public';
@@ -19,6 +19,23 @@ export class AuthController {
   @Get('status')
   status(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     return this.auth.status(req, res);
+  }
+  @Get('profile')
+  profile() {
+    return this.auth.profile();
+  }
+  @Patch('profile')
+  updateProfile(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body()
+    body: {
+      username?: unknown;
+      currentPassword?: unknown;
+      newPassword?: unknown;
+    },
+  ) {
+    return this.auth.updateProfile(req, res, body);
   }
   @Public()
   @Post('login')

@@ -46,7 +46,7 @@ docker compose up -d
 
 Możesz też uruchomić `sh install.sh` w rozpakowanym katalogu — wtedy konfiguracja powstanie automatycznie. Adres/port ustawisz w `.env` (`FRONTEND_BIND`, `FRONTEND_PORT`), a wersję obrazów w `HOMEBUDGET_VERSION`. Instalator nie nadpisuje istniejącego `.env` ani danych bazy. Dane są w `pgdata/` — zachowaj cały katalog instalacji. Oba warianty **wyłącznie pobierają obrazy**, bez `build`.
 
-Polecenia instalacyjne będą dostępne po opublikowaniu pierwszego wydania i publicznych obrazów GHCR.
+Polecenia instalacyjne są dostępne w wydaniach GitHub i publicznych obrazach GHCR.
 
 > To jedna wspólna przestrzeń domowa. Od wersji **2026.11.1** wybierasz [logowanie loginem i hasłem](docs/authentication.md) (`--auth`) albo tryb bez logowania (`--no-auth`, wyłącznie zaufany LAN/VPN). Nowa instalacja pyta o wybór; aktualizacja nie nadpisuje konfiguracji. Publiczna instancja wymaga logowania i HTTPS. Instalacja jako PWA na iPhone wymaga HTTPS z zaufanym certyfikatem.
 

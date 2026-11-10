@@ -34,7 +34,7 @@ wymaga ich uzupełnienia. Brak `AUTH_MODE` zachowuje tryb bez logowania dla LAN/
 | `POSTGRES_USER`                   | Użytkownik PostgreSQL, domyślnie `postgres`                              |
 | `POSTGRES_DB`                     | Nazwa bazy, domyślnie `budgetdb`                                         |
 | `POSTGRES_PASSWORD`               | Wymagane hasło; instalator generuje losową wartość hex                   |
-| `HOMEBUDGET_VERSION`              | Wspólna wersja backendu, migratora i frontendu, np. `2026.11.0`          |
+| `HOMEBUDGET_VERSION`              | Wspólna wersja backendu, migratora i frontendu, np. `2026.11.2`          |
 | `FRONTEND_BIND`                   | Interfejs sieciowy, domyślnie `0.0.0.0`; lokalnie można użyć `127.0.0.1` |
 | `FRONTEND_PORT`                   | Port aplikacji, domyślnie `3001`                                         |
 | `BACKEND_IMAGE`, `FRONTEND_IMAGE` | Opcjonalne własne nazwy/tagi obrazów                                     |

@@ -18,7 +18,7 @@ for option in "$@"; do
   esac
 done
 
-version=${HOMEBUDGET_VERSION:-2026.11.1}
+version=${HOMEBUDGET_VERSION:-2026.11.2}
 case "$version" in ''|*[!0-9A-Za-z.-]*) fail 'Invalid HOMEBUDGET_VERSION.' ;; esac
 
 if [ -f "$0" ] && [ -f "$(dirname "$0")/docker-compose.yml" ]; then

@@ -47,6 +47,11 @@ export default createRouter({
       meta: { title: "Ustawienia" },
     },
     {
+      path: "/profile",
+      component: () => import("@/household/ProfilePage.vue"),
+      meta: { title: "Profil" },
+    },
+    {
       path: "/import",
       component:
         import.meta.env.VITE_DEMO_MODE === "true"

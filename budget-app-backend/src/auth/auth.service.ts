@@ -114,6 +114,14 @@ export class AuthService implements OnModuleInit {
       csrfToken: this.csrf(req, res),
     };
   }
+  async profile() {
+    if (!this.config.enabled)
+      throw new BadRequestException('Logowanie jest wyłączone.');
+    const account = await this.db.authAccount.findUnique({ where: { id: 1 } });
+    if (!account)
+      throw new BadRequestException('Najpierw ustaw login i hasło.');
+    return { username: account.username };
+  }
   private async attempt(key: string, limit: number) {
     const now = new Date(),
       resetAt = new Date(now.getTime() + 15 * 60 * 1000);
@@ -271,5 +279,92 @@ export class AuthService implements OnModuleInit {
       throw error;
     }
     return this.login(req, res, { username, password });
+  }
+
+  async updateProfile(
+    req: Request,
+    res: Response,
+    body: {
+      username?: unknown;
+      currentPassword?: unknown;
+      newPassword?: unknown;
+    },
+  ) {
+    if (!this.config.enabled)
+      throw new BadRequestException('Logowanie jest wyłączone.');
+    const { username, currentPassword, newPassword } = body || {};
+    if (
+      typeof username !== 'string' ||
+      !/^[A-Za-z0-9._-]{1,64}$/.test(username)
+    )
+      throw new BadRequestException(
+        'Login: użyj 1–64 liter, cyfr lub znaków . _ -',
+      );
+    if (
+      typeof currentPassword !== 'string' ||
+      !currentPassword.length ||
+      Buffer.byteLength(currentPassword) > 1024
+    )
+      throw new BadRequestException('Podaj aktualne hasło.');
+    if (
+      newPassword !== undefined &&
+      (typeof newPassword !== 'string' ||
+        [...newPassword].length < 12 ||
+        Buffer.byteLength(newPassword) > 1024)
+    )
+      throw new BadRequestException(
+        'Hasło musi mieć co najmniej 12 znaków i najwyżej 1024 bajty.',
+      );
+
+    await this.attempt('global', 100);
+    await this.attempt(digest(req.socket.remoteAddress || 'unknown'), 10);
+    const account = await this.db.authAccount.findUnique({ where: { id: 1 } });
+    if (!account)
+      throw new BadRequestException('Najpierw ustaw login i hasło.');
+    if (this.verifying >= 2)
+      throw new HttpException('Logowanie jest zajęte. Spróbuj ponownie.', 429);
+    this.verifying++;
+    let valid: boolean;
+    let passwordHash = account.passwordHash;
+    try {
+      valid = await argon2.verify(account.passwordHash, currentPassword);
+      if (valid && typeof newPassword === 'string')
+        passwordHash = await argon2.hash(newPassword, {
+          type: argon2.argon2id,
+          memoryCost: 32768,
+          timeCost: 3,
+          parallelism: 1,
+          hashLength: 32,
+        });
+    } finally {
+      this.verifying--;
+    }
+    if (!valid)
+      throw new UnauthorizedException('Nieprawidłowe aktualne hasło.');
+
+    const version = randomUUID();
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + lifetime);
+    await this.db.$transaction(async (tx) => {
+      const changed = await tx.authAccount.updateMany({
+        where: { id: 1, version: account.version },
+        data: { username, passwordHash, version },
+      });
+      if (changed.count !== 1)
+        throw new ConflictException('Profil zmienił się. Odśwież stronę.');
+      await tx.authSession.deleteMany();
+      await tx.authSession.create({
+        data: {
+          tokenHash: digest(token),
+          version,
+          expiresAt,
+        },
+      });
+    });
+    res.cookie(this.name('session'), token, {
+      ...this.options(),
+      expires: expiresAt,
+    });
+    return { username, expiresAt: expiresAt.toISOString() };
   }
 }

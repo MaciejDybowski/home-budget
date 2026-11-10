@@ -14,7 +14,11 @@ interface Status {
 export const auth = ref<Status>({ enabled: true, authenticated: false });
 export const authReady = ref(false);
 export const authBusy = ref(false);
-const client = axios.create({ baseURL: "/api/v1/auth", timeout: 60000 });
+export const authApi = axios.create({
+  baseURL: "/api/v1/auth",
+  timeout: 60000,
+});
+const client = authApi;
 let epoch = 0;
 let pending = new AbortController();
 let expiry: ReturnType<typeof setTimeout>;

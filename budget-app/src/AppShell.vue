@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Moon,
   Sun,
+  UserRound,
 } from "@lucide/vue";
 import EntryEditor from "./household/EntryEditor.vue";
 import DateInput from "./household/DateInput.vue";
@@ -43,6 +44,10 @@ const DemoNotice =
     : null;
 const route = useRoute();
 const router = useRouter();
+const profileMenuOpen = ref(false);
+function closeProfileMenu() {
+  profileMenuOpen.value = false;
+}
 async function signOut() {
   try {
     await logout();
@@ -151,9 +156,40 @@ onUnmounted(() => window.removeEventListener("pwa-update", onUpdate));
         }}</span>
         <div class="topbar-actions">
           <LanguageSwitch />
-          <button v-if="auth.enabled" class="text-button" @click="signOut">
-            {{ tr("Wyloguj") }}
-          </button>
+          <div
+            v-if="auth.enabled"
+            class="profile-menu"
+            @keydown.esc="closeProfileMenu"
+          >
+            <button
+              class="icon-button profile-avatar"
+              :aria-label="tr('Menu profilu')"
+              aria-haspopup="menu"
+              :aria-expanded="profileMenuOpen"
+              @click="profileMenuOpen = !profileMenuOpen"
+            >
+              <UserRound :size="20" />
+            </button>
+            <div v-if="profileMenuOpen" class="profile-menu-panel" role="menu">
+              <RouterLink
+                to="/profile"
+                role="menuitem"
+                @click="closeProfileMenu"
+              >
+                {{ tr("Profil") }}
+              </RouterLink>
+              <button
+                class="text-button"
+                role="menuitem"
+                @click="
+                  closeProfileMenu();
+                  signOut();
+                "
+              >
+                {{ tr("Wyloguj") }}
+              </button>
+            </div>
+          </div>
           <button
             class="icon-button"
             :aria-label="
@@ -260,3 +296,40 @@ onUnmounted(() => window.removeEventListener("pwa-update", onUpdate));
     <EntryEditor />
   </div>
 </template>
+
+<style scoped>
+.profile-menu {
+  position: relative;
+}
+
+.profile-menu-panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  display: grid;
+  min-width: 10rem;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--surface);
+  box-shadow: 0 0.75rem 2rem #0002;
+}
+
+.profile-menu-panel a,
+.profile-menu-panel button {
+  padding: 0.65rem 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  text-decoration: none;
+}
+
+.profile-menu-panel a:hover,
+.profile-menu-panel button:hover {
+  background: var(--surface-soft);
+}
+</style>

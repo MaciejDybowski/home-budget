@@ -18,6 +18,18 @@ Po zapisaniu konta kreator zamyka się trwale. Dwa równoczesne żądania nie
 nadpiszą sobie konta: singleton w PostgreSQL dopuszcza wyłącznie jednego zwycięzcę.
 API finansów jest chronione również przed utworzeniem konta.
 
+## Profil i zmiana danych logowania
+
+Po zalogowaniu ikona avatara w górnym pasku otwiera menu **Profil** i **Wyloguj**.
+W profilu można zmienić login oraz hasło. Zmiana wymaga podania aktualnego hasła;
+nowe hasło jest opcjonalne, gdy zmieniasz tylko login, a jeśli je podasz musi mieć
+co najmniej 12 znaków. Potwierdzenie hasła jest sprawdzane w przeglądarce.
+
+Zmiana loginu lub hasła odświeża bieżącą sesję, a wszystkie pozostałe sesje
+unieważnia. Przy niepoprawnym aktualnym haśle dane konta nie są zmieniane.
+Funkcja działa wyłącznie w trybie `AUTH_MODE=local`; tryb `none` nie pokazuje
+menu profilu ani nie umożliwia zmian poświadczeń przez API.
+
 ## Tryb wybierany per instalacja
 
 ```dotenv

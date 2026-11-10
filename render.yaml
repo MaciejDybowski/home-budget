@@ -1,4 +1,4 @@
-# External deployment: TEST DATA ONLY until authentication is available.
+# Generic authenticated Render deployment template.
 services:
   - type: web
     name: homebudget-external

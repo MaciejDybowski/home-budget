@@ -30,7 +30,7 @@ cleanup() {
 trap cleanup EXIT HUP INT TERM
 docker run -d --name "$registry" -p 127.0.0.1:15000:5000 registry:2 >/dev/null
 created_registry=true
-python3 "$root/scripts/package-release.py" 2026.11.1 "$tmp/bundle"
+python3 "$root/scripts/package-release.py" 2026.11.2 "$tmp/bundle"
 # Source contexts exist only on the publisher side of this test.
 POSTGRES_PASSWORD=test_build_only docker compose -f "$root/docker-compose.yml" -f "$root/compose.build.yml" build budget-app-backend
 POSTGRES_PASSWORD=test_build_only docker compose -f "$root/docker-compose.yml" -f "$root/compose.build.yml" build budget-app-frontend

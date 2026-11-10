@@ -51,7 +51,8 @@ test("logout failure keeps the budget hidden and retry refreshes rotated CSRF wi
   await expect(
     page.getByRole("heading", { name: "Nasz miesiąc", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Wyloguj", exact: true }).click();
+  await page.locator(".profile-avatar").click();
+  await page.getByRole("menuitem", { name: "Wyloguj", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Ponów wylogowanie" }),
   ).toBeVisible();
@@ -151,7 +152,8 @@ test("requires login before loading finance data, supports PL/EN, logout and a r
   await expect(
     page.getByRole("heading", { name: "Transakcje", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Wyloguj", exact: true }).click();
+  await page.locator(".profile-avatar").click();
+  await page.getByRole("menuitem", { name: "Wyloguj", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Zaloguj", exact: true }),
   ).toBeVisible();
@@ -231,4 +233,75 @@ test("a 401 removes the budget and never replays a mutation", async ({
   await expect(
     page.getByRole("heading", { name: "Nasz miesiąc", exact: true }),
   ).not.toBeVisible();
+});
+
+test("avatar opens profile and allows changing the username and password", async ({
+  page,
+}) => {
+  const csrf = "c".repeat(64);
+  let saved: Record<string, string> | undefined;
+  await page.route("**/api/v1/auth/status", (route) =>
+    route.fulfill({
+      json: {
+        enabled: true,
+        authenticated: true,
+        csrfToken: csrf,
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      },
+    }),
+  );
+  await page.route("**/api/v1/auth/profile", (route) => {
+    if (route.request().method() === "GET")
+      return route.fulfill({ json: { username: "family" } });
+    expect(route.request().headers()["x-csrf-token"]).toBe(csrf);
+    saved = route.request().postDataJSON();
+    return route.fulfill({
+      json: {
+        username: "new-family",
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+      },
+    });
+  });
+  await page.route("**/api/v1/household**", (route) =>
+    route.fulfill({
+      json: {
+        categories: [],
+        sources: [],
+        expenses: [],
+        incomes: [],
+        previousExpenses: [],
+        accounts: [],
+        budget: null,
+        goals: [],
+        meters: [],
+        imports: [],
+        rules: [],
+        merchants: [],
+        trend: [],
+      },
+    }),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Menu profilu" }).click();
+  await page.getByRole("menuitem", { name: "Profil" }).click();
+  await expect(page.getByLabel("Login", { exact: true })).toHaveValue("family");
+  await page.getByLabel("Login", { exact: true }).fill("new-family");
+  await page
+    .getByLabel("Aktualne hasło", { exact: true })
+    .fill("current-password");
+  await page
+    .getByLabel("Nowe hasło", { exact: true })
+    .fill("new-password-long");
+  await page
+    .getByLabel("Powtórz nowe hasło", { exact: true })
+    .fill("new-password-long");
+  await page.getByRole("button", { name: "Zapisz zmiany" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Zapisano profil i odświeżono sesję.",
+  );
+  expect(saved).toEqual({
+    username: "new-family",
+    currentPassword: "current-password",
+    newPassword: "new-password-long",
+  });
 });

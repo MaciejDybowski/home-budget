@@ -269,4 +269,62 @@ integration('Optional authentication against isolated PostgreSQL', () => {
       .set('Cookie', cookies(winner))
       .expect(200);
   });
+  it('changes username and password only after current-password verification, keeps the current session and revokes others', async () => {
+    const first = await login();
+    const second = await login();
+    const changedPassword = 'new-test-password-long';
+    const csrf = csrfToken(first);
+    const updated = await request(app.getHttpServer())
+      .patch('/api/v1/auth/profile')
+      .set('Cookie', cookies(first))
+      .set('Origin', origin)
+      .set('X-CSRF-Token', csrf)
+      .send({
+        username: 'new-family',
+        currentPassword: password,
+        newPassword: changedPassword,
+      })
+      .expect(200);
+    expect((updated.body as { username: string }).username).toBe('new-family');
+    expect(await db.authSession.count()).toBe(1);
+    await request(app.getHttpServer())
+      .get('/api/v1/auth/profile')
+      .set('Cookie', cookies(updated))
+      .expect({ username: 'new-family' });
+    await request(app.getHttpServer())
+      .get('/api/v1/household?month=2026-11')
+      .set('Cookie', cookies(updated))
+      .expect(200);
+    await request(app.getHttpServer())
+      .get('/api/v1/household?month=2026-11')
+      .set('Cookie', cookies(second))
+      .expect(401);
+    const renewed = await status();
+    await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .set('Cookie', cookies(renewed))
+      .set('Origin', origin)
+      .set('X-CSRF-Token', csrfToken(renewed))
+      .send({ username: 'new-family', password: changedPassword })
+      .expect(201);
+    await request(app.getHttpServer())
+      .patch('/api/v1/auth/profile')
+      .set('Cookie', `${cookies(updated)}; __Host-hb_csrf=${csrfToken(first)}`)
+      .set('Origin', origin)
+      .set('X-CSRF-Token', csrfToken(first))
+      .send({ username: 'attacker', currentPassword: 'incorrect-password' })
+      .expect(401);
+    expect(
+      (await db.authAccount.findUniqueOrThrow({ where: { id: 1 } })).username,
+    ).toBe('new-family');
+  });
+  it('requires CSRF protection for profile changes', async () => {
+    const session = await login();
+    await request(app.getHttpServer())
+      .patch('/api/v1/auth/profile')
+      .set('Cookie', cookies(session))
+      .set('Origin', origin)
+      .send({ username: 'forged', currentPassword: password })
+      .expect(403);
+  });
 });

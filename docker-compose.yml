@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
 
   migrate:
-    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.1}}
+    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.2}}
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-budgetdb}?schema=public
     command: ["npm", "run", "db:deploy"]
@@ -27,7 +27,7 @@ services:
     restart: "no"
 
   budget-app-backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.1}}
+    image: ${BACKEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-backend:${HOMEBUDGET_VERSION:-2026.11.2}}
     container_name: budget-backend
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-budgetdb}?schema=public
@@ -52,7 +52,7 @@ services:
     restart: unless-stopped
 
   budget-app-frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-frontend:${HOMEBUDGET_VERSION:-2026.11.1}}
+    image: ${FRONTEND_IMAGE:-ghcr.io/maciejdybowski/home-budget-frontend:${HOMEBUDGET_VERSION:-2026.11.2}}
     container_name: budget-frontend
     ports:
       - "${FRONTEND_BIND:-0.0.0.0}:${FRONTEND_PORT:-3001}:80"

@@ -16,11 +16,11 @@ model AuthSession {
 }
 
 model AuthAccount {
-  id Int @id @default(1)
-  username String
+  id           Int      @id @default(1)
+  username     String
   passwordHash String
-  version String
-  createdAt DateTime @default(now())
+  version      String
+  createdAt    DateTime @default(now())
 }
 
 model AuthAttempt {

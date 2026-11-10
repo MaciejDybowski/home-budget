@@ -1,5 +1,8 @@
 {
   "Najpierw ustaw login i hasło.": "Set a username and password first.",
+  "Podaj aktualne hasło.": "Enter your current password.",
+  "Nieprawidłowe aktualne hasło.": "The current password is incorrect.",
+  "Profil zmienił się. Odśwież stronę.": "The profile changed. Refresh the page.",
   "Konfiguracja logowania została już zakończona.": "Sign-in has already been configured.",
   "Login: użyj 1–64 liter, cyfr lub znaków . _ -": "Username: use 1–64 letters, numbers or . _ -",
   "Hasło musi mieć co najmniej 12 znaków i najwyżej 1024 bajty.": "The password must contain at least 12 characters and at most 1024 bytes.",
